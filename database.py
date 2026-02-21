@@ -1,10 +1,27 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 import os
 
-DATABASE_URL = os.getenv("postgresql://postgres:rdexQdIKqNzsjpYaXkJSSZASEKJSwdpW@postgres.railway.internal:5432/railway", "sqlite:///./test.db")
+# Database URL from Railway
+DATABASE_URL = os.environ.get(
+    "DATABASE_URL",
+    "postgresql://postgres:rdexQdIKqNzsjpYaXkJSSZASEKJSwdpW@postgres.railway.internal:5432/railway"
+)
 
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine)
+# Create SQLAlchemy engine
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
+# Create session factory
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for ORM models
 Base = declarative_base()
+
+def get_db():
+    """Dependency for getting database session"""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
