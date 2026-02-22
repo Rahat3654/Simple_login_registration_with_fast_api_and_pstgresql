@@ -1,12 +1,6 @@
 fastapi
 uvicorn
-pydantic
-gspread
-google-auth-oauthlib
-google-auth-httplib2
 sqlalchemy
 psycopg2-binary
-python-dotenv
 python-multipart
-# ডেটাবেস কানেকশনের জন্য এটি অনেক সময় প্রয়োজন হয়
-psycopg2
+python-dotenv
