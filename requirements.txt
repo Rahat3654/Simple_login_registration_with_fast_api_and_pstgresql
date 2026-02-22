@@ -7,3 +7,4 @@ google-auth-httplib2
 sqlalchemy
 psycopg2-binary
 python-dotenv
+python-multipart
