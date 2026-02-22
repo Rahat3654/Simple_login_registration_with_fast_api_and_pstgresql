@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JINIE | Auth Portal</title>
     <style>
-        /* CSS Styling */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
@@ -18,7 +17,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Animated Gradient Background */
             background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
             background-size: 400% 400%;
             animation: gradient 15s ease infinite;
@@ -31,23 +29,25 @@
         }
 
         .container {
-            width: 350px;
-            height: 450px;
+            width: 400px; /* একটু চওড়া করা হয়েছে */
+            min-height: 500px; /* হাইট অ্যাডজাস্ট করা হয়েছে */
             position: relative;
             background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
             overflow: hidden;
             padding: 30px;
+            display: flex;
+            flex-direction: column;
         }
 
         .toggle-box {
             width: 100%;
             display: flex;
             justify-content: space-around;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             position: relative;
             background: rgba(0, 0, 0, 0.1);
             border-radius: 30px;
@@ -80,35 +80,35 @@
 
         .form-container {
             display: flex;
-            width: 200%; /* Two forms side-by-side */
+            width: 200%;
             transition: 0.5s ease-in-out;
-            position: relative;
         }
 
         form {
             width: 50%;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 12px; /* গ্যাপ একটু কমানো হয়েছে যাতে সব ধরে */
         }
 
         input {
             width: 100%;
-            padding: 12px 15px;
+            padding: 10px 15px;
             background: rgba(255, 255, 255, 0.2);
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             outline: none;
-            border-radius: 10px;
+            border-radius: 8px;
             color: #fff;
             font-size: 14px;
         }
 
         input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.8);
         }
 
         button.submit-btn {
             padding: 12px;
+            margin-top: 10px;
             border: none;
             border-radius: 10px;
             background: #fff;
@@ -123,14 +123,9 @@
             transform: translateY(-2px);
         }
 
-        /* Class to slide the forms */
-        .slide-left {
-            transform: translateX(-50%);
-        }
+        .slide-left { transform: translateX(-50%); }
+        .active-text { color: #333 !important; }
 
-        .active-text {
-            color: #333 !important;
-        }
     </style>
 </head>
 <body>
@@ -149,15 +144,15 @@
                 <button type="submit" class="submit-btn">Enter System</button>
             </form>
 
-<form id="reg">
-    <input type="text" name="name" placeholder="Full Name" required>
-    <input type="text" name="student_id" placeholder="Student ID" required>
-    <input type="email" name="email" placeholder="Email Address" required>
-    <input type="text" name="department" placeholder="Department" required>
-    <input type="text" name="hall_name" placeholder="Hall Name" required>
-    <input type="password" name="password" placeholder="Set Password" required>
-    <button type="submit" class="submit-btn">Create Account</button>
-</form>
+            <form id="reg">
+                <input type="text" name="name" placeholder="Full Name" required>
+                <input type="text" name="student_id" placeholder="Student ID" required>
+                <input type="email" name="email" placeholder="Email Address" required>
+                <input type="text" name="department" placeholder="Department" required>
+                <input type="text" name="hall_name" placeholder="Hall Name" required>
+                <input type="password" name="password" placeholder="Set Password" required>
+                <button type="submit" class="submit-btn">Create Account</button>
+            </form>
         </div>
     </div>
 
@@ -167,7 +162,6 @@
         const tLog = document.getElementById("t-log");
         const tReg = document.getElementById("t-reg");
 
-        // UI Toggle Function
         function showForm(type) {
             if (type === 'register') {
                 wrapper.classList.add("slide-left");
@@ -182,19 +176,25 @@
             }
         }
 
-        // Shared Send Logic
         async function send(form, url) {
             const data = new FormData(form);
             try {
-                const res = await fetch(url, { method: "POST", body: data });
-                const msg = await res.text();
-                alert(msg);
+                const res = await fetch(url, { 
+                    method: "POST", 
+                    body: data 
+                });
+                const result = await res.json(); // Backend থেকে JSON রেসপন্স আশা করছি
+                
+                if (res.ok) {
+                    alert(result.message || result);
+                } else {
+                    alert("Error: " + (result.detail || "Something went wrong"));
+                }
             } catch (err) {
-                alert("Error connecting to server.");
+                alert("Could not connect to the server.");
             }
         }
 
-        // Form Listeners
         document.getElementById("reg").onsubmit = e => {
             e.preventDefault();
             send(e.target, "/register");
