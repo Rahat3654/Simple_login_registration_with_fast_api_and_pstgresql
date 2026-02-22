@@ -1,15 +1,17 @@
 import os
 import uvicorn
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
 from sqlalchemy import Column, String, Integer
 from pathlib import Path
-from database import engine, SessionLocal, Base, get_db
 from sqlalchemy.orm import Session
 
-# Create tables
+# আপনার database.py থেকে ইমপোর্ট করা
+from database import engine, SessionLocal, Base, get_db
+
+# ---------- DATABASE TABLES CREATE ----------
+# এটি রান হওয়ার সময় অটোমেটিক Railway ডাটাবেসে টেবিল তৈরি করবে
 Base.metadata.create_all(bind=engine)
 
 # ---------- APP INIT ----------
@@ -46,52 +48,53 @@ async def serve_index():
         raise HTTPException(status_code=404, detail="Index.html not found")
     return FileResponse(INDEX_FILE)
 
-# ---------- PYDANTIC MODEL ----------
-class User(BaseModel):
-    name: str
-    student_id: str
-    email: str
-    department: str
-    hall_name: str
-    password: str
-
-# ---------- REGISTER ----------
+# ---------- REGISTER (Updated with Form) ----------
 @app.post("/register")
-async def register(user: User, db: Session = Depends(get_db)):
+async def register(
+    name: str = Form(...),
+    student_id: str = Form(...),
+    email: str = Form(...),
+    department: str = Form(...),
+    hall_name: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
     try:
-        # Check if user already exists
+        # ১. ইউজার আগে থেকেই আছে কিনা চেক করা
         existing_user = db.query(UserModel).filter(
-            (UserModel.student_id == user.student_id) | 
-            (UserModel.email == user.email)
+            (UserModel.student_id == student_id) | 
+            (UserModel.email == email)
         ).first()
         
         if existing_user:
-            raise HTTPException(status_code=400, detail="User already registered")
+            # যদি ইউজার থাকে তবে এরর মেসেজ
+            return {"status": "error", "message": "User already registered with this Student ID or Email"}
         
-        # Create new user
+        # ২. নতুন ইউজার তৈরি করা
         db_user = UserModel(
-            name=user.name,
-            student_id=user.student_id,
-            email=user.email,
-            department=user.department,
-            hall_name=user.hall_name,
-            password=user.password
+            name=name,
+            student_id=student_id,
+            email=email,
+            department=department,
+            hall_name=hall_name,
+            password=password
         )
         
+        # ৩. ডাটাবেসে সেভ করা
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
         
         return {
-            "status": "success",
-            "message": f"Data for {user.name} saved successfully!"
+            "status": "success", 
+            "message": f"Data for {name} saved successfully to Railway Database!"
         }
     
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-# ---------- FOR RUNNING DIRECTLY ----------
+# ---------- RUN APP ----------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
